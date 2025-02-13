@@ -1,0 +1,36 @@
+/* Sidebar Styling */
+.sidebar {
+    width: 20%;
+    background-color: #f4f4f4;
+    padding: 20px;
+    overflow-y: auto; /* Allows scrolling for long content */
+    border-right: 1px solid #ccc;
+    height: calc(100vh - 60px); /* Adjust height to exclude navbar */
+    position: relative;
+  }
+  
+  .sidebar h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  .station-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .station-list li {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #e6e6e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .station-list li:hover {
+    background-color: #d4d4d4;
+  }
+  

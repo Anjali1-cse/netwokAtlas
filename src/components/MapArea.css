@@ -1,0 +1,85 @@
+/* Ensure the map takes the full screen */
+.leaflet-container {
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Style for the map control buttons (+ and -) */
+  .leaflet-control-zoom {
+    position: absolute;
+    bottom: 20px; /* Move to the bottom */
+    right: 20px;  /* Move to the right */
+    z-index: 1000;
+  }
+  
+  .leaflet-control-zoom a {
+    background-color: #4CAF50; /* Green background for zoom buttons */
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 5px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .leaflet-control-zoom a:hover {
+    background-color: #45a049; /* Darker green on hover */
+  }
+  
+  /* Style for the popup */
+  .leaflet-popup-content {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+  }
+  
+  .leaflet-popup-content b {
+    color: #333;
+  }
+  
+  /* Custom triangle, rectangle, and circle styling for points */
+  .leaflet-interactive polygon {
+    stroke: black;
+    stroke-width: 2px;
+  }
+  
+  .leaflet-interactive rectangle {
+    stroke: black;
+    stroke-width: 2px;
+  }
+  
+  .leaflet-interactive circle {
+    stroke: black;
+    stroke-width: 1px;
+  }
+  
+  /* Style for the popup */
+  .leaflet-popup-content {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+  }
+  
+  .leaflet-popup-content b {
+    color: #333;
+  }
+  
+  /* Custom triangle, rectangle, and circle styling for points */
+  .leaflet-interactive polygon {
+    stroke: black;
+    stroke-width: 2px;
+  }
+  
+  .leaflet-interactive rectangle {
+    stroke: black;
+    stroke-width: 2px;
+  }
+  
+  .leaflet-interactive circle {
+    stroke: black;
+    stroke-width: 1px;
+  }
+  
