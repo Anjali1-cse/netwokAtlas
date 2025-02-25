@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import './SideBar.css';
 
-const SideBar = ({ onSelectType, onRouteSelect, setSelectedRouteNames }) => {
+const SideBar = ({ selectedNetwork,onSelectType, onRouteSelect, setSelectedRouteNames }) => {
     const [nodes, setNodes] = useState([]); // Store all stations
     const [searchNodeA, setSearchNodeA] = useState(""); // Input for POP A
     const [searchNodeB, setSearchNodeB] = useState(""); // Input for POP B

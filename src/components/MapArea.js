@@ -4,32 +4,49 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import './MapArea.css';
 
-const MapArea = ({ selectedType,selectedRouteNames }) => {
+const MapArea = ({ selectedNetwork,selectedType,selectedRouteNames }) => {
+    // Default to DWDM
   const [routes, setRoutes] = useState([]);
   const [popData, setPopData] = useState([]);
   const mapRef = useRef(null);
 
-  // Fetch routes data
+  // Fetch routes data when selectedNetwork changes
   useEffect(() => {
-    fetch("http://localhost:3001/routes")
+    setRoutes([]); // Clear old data before fetching new
+    if (!selectedNetwork) return;
+    const routeType = selectedNetwork;
+    fetch(`http://localhost:3001/routes?type=${routeType}`)
       .then((res) => res.json())
       .then((data) => setRoutes(data))
       .catch((err) => {
         console.error("Error fetching routes:", err);
-        setRoutes([]); // Set to empty array in case of failure
+        setRoutes([]); // Empty array in case of failure
       });
-  }, []);
-
-  // Fetch POP data
+  }, [selectedNetwork]);
+// Fetch pop data
   useEffect(() => {
-  fetch("http://localhost:3001/pop")
-    .then((res) => res.json())
-    .then((data) => setPopData(data))
-    .catch((err) => {
-      console.error("Error fetching POP data:", err);
-      setPopData([]); // Set to empty array in case of failure
-    });
-}, []);
+    console.log("Fetching POP data for:", selectedNetwork); // Debug log
+    setPopData([]); // Clear old data before fetching new
+  
+     // Determine table name based on type
+     let popType = "POP_LOCATION"; // Default table
+     if (selectedNetwork === "mdwdm") {
+      popType = "MDWDM_POP_LOCATION";
+     }
+     console.log("Fetched Data:", popType);
+    fetch(`http://localhost:3001/pop?type=${popType}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Fetched Data:", data);
+        setPopData(data);
+      })
+      .catch((err) => {
+        console.error("Error fetching POP data:", err);
+        setPopData([]);
+      });
+  }, [selectedNetwork]);
+  
+
 
   // Shape and color lookup map for POPs
   const shapeColorMap = {
@@ -44,6 +61,10 @@ const MapArea = ({ selectedType,selectedRouteNames }) => {
     "CIENA": {
       "ILA": { shape: "triangle", color: "red" },
       "OADM": { shape: "rectangle", color: "black" },
+    },
+    "CORIANT": {
+      "ILA": { shape: "triangle", color: "pink" },
+      "OADM": { shape: "rectangle", color: "yellow" },
     },
   };
 
@@ -60,17 +81,19 @@ const MapArea = ({ selectedType,selectedRouteNames }) => {
   const getRouteStyle = (type) => {
     switch (type) {
       case "To Be Commission":
-        return { color: "blue", weight: 2, opacity: 0.8 };
+        return { color: "blue", weight: 3, opacity: 0.9 };
       case "CIENA To Be Commission":
-        return { color: "yellow", weight: 2, opacity: 0.8 };
+        return { color: "yellow", weight: 3, opacity: 0.9 };
       case "CIENA":
-        return { color: "purple", weight: 2, opacity: 0.8 };
+        return { color: "purple", weight: 3, opacity: 0.9 };
       case "ADVA":
-        return { color: "green", weight: 2, opacity: 0.8 };
-      case "TEJAS DWDM":
-        return { color: "red", weight: 2, opacity: 0.8 };
+        return { color: "green", weight: 3, opacity: 0.9 };
+      case "TEJAS":
+        return { color: "red", weight: 3, opacity: 0.9 };
+      case "CORIANT":
+        return{color: "orange", weight: 3, opacity: 0.9 }
       default:
-        return { color: "gray", weight: 2, opacity: 0.8 };
+        return { color: "gray", weight: 3, opacity: 0.9 };
     }
   };
 
@@ -95,11 +118,12 @@ const MapArea = ({ selectedType,selectedRouteNames }) => {
   useEffect(() => {
     if (mapRef.current && filteredRoutes.length > 0) {
       const map = mapRef.current;
+      
   
       // Collect all bounds
       let combinedBounds = null;
       filteredRoutes.forEach((route) => {
-        if (route.geometry) {
+        if (route.geometry && route.geometry.coordinates) {
           try {
             const geojsonLayer = L.geoJSON(route.geometry);
             const bounds = geojsonLayer.getBounds();
@@ -119,9 +143,12 @@ const MapArea = ({ selectedType,selectedRouteNames }) => {
   
       if (combinedBounds && combinedBounds.isValid()) {
         setTimeout(() => {
-          map.invalidateSize(); // Ensure the map properly resizes
-          map.fitBounds(combinedBounds, { padding: [50, 50] });
-        }, 100); // Slight delay to allow rendering
+          map.invalidateSize(); // Ensure the map resizes properly
+          if (combinedBounds && combinedBounds.isValid()) {
+            map.fitBounds(combinedBounds, { padding: [50, 50] });
+          }
+        }, 200); // Increase delay slightly if needed
+         // Slight delay to allow rendering
       }
     }
   }, [filteredRoutes]);
@@ -141,21 +168,21 @@ const MapArea = ({ selectedType,selectedRouteNames }) => {
       />
 
       {/* Render Routes */}
-      {filteredRoutes.map((route) =>
-        route.geometry ? (
+      {filteredRoutes.map((routes) =>
+        routes.geometry ? (
           <GeoJSON
-            key={route.id}
-            data={route.geometry}
-            style={getRouteStyle(route.type)}
+            key={routes.id}
+            data={routes.geometry}
+            style={getRouteStyle(routes.type)}
             onEachFeature={(feature, layer) => {
               layer.bindPopup(`
-                <b>Route ID:</b> ${route.id || "Not Available"}<br />
-                <b>Section ID:</b> ${route.SECTION_ID || "Not Available"}<br />
-                <b>Route Name:</b> ${route.ROUTE_NAME || "Not Available"}<br />
-                <b>O&M SECTION:</b> ${route.OM_SECTION || "Not Available"}<br />
-                <b>Territory:</b> ${route.TERRITORY || "Not Available"}<br />
-                <b>Region:</b> ${route.REGION || "Not Available"}<br />
-                <b>Type:</b> ${route.type || "Not Available"}
+                <b>Route ID:</b> ${routes.id || "Not Available"}<br />
+                <b>Section ID:</b> ${routes.SECTION_ID || "Not Available"}<br />
+                <b>Route Name:</b> ${routes.ROUTE_NAME || "Not Available"}<br />
+                <b>O&M SECTION:</b> ${routes.OM_SECTION || "Not Available"}<br />
+                <b>Territory:</b> ${routes.TERRITORY || "Not Available"}<br />
+                <b>Region:</b> ${routes.REGION || "Not Available"}<br />
+                <b>Type:</b> ${routes.type || "Not Available"}
               `);
               
             }}
@@ -165,13 +192,13 @@ const MapArea = ({ selectedType,selectedRouteNames }) => {
 
       {/* Render POP Locations */}
       {popData.length > 0 &&
-        popData.map((pop) => {
+        popData.map((pop,index) => {
           const { shape, color } = getShapeAndColor(pop.EQP_TYPE || "");
           if (!pop.geometry) return null; // Skip if no geometry
 
           return (
             <GeoJSON
-              key={pop.id}
+            key={`${pop.id}-${selectedNetwork}-${index}`} // Unique key forces re-render
               data={pop.geometry}
               pointToLayer={(feature, latlng) => {
                 if (shape === "triangle") {

@@ -9,6 +9,7 @@ import FileUpload from "./components/FileUpload";
 import "./App.css";
 
 const App = () => {
+  const [selectedNetwork, setSelectedNetwork] = useState("dwdm"); // Default to DWDM
   const [selectedType, setSelectedType] = useState(null);
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [selectedTerritory, setSelectedTerritory] = useState(null);
@@ -30,6 +31,9 @@ const App = () => {
           onSelectRegion={setSelectedRegion}
           onSelectTerritory={setSelectedTerritory}
           onRouteSelect={handleRouteSelect}
+          onSelectNetwork={setSelectedNetwork} 
+          selectedNetwork={selectedNetwork}
+         
         />
 
         {/* Routes */}
@@ -38,6 +42,8 @@ const App = () => {
             path="/"
             element={
               <Home
+              selectedNetwork={selectedNetwork} 
+              setSelectedNetwork={setSelectedNetwork}
                 selectedType={selectedType}
                 selectedRegion={selectedRegion}
                 selectedTerritory={selectedTerritory}
@@ -134,6 +140,7 @@ const App = () => {
 
 // Network layout component
 const NetworkLayout = ({
+  selectedNetwork,
   selectedType,
   selectedRegion,
   selectedTerritory,
@@ -148,11 +155,13 @@ const NetworkLayout = ({
 }) => (
   <div className="main-layout">
     <SideBar
+    selectedNetwork={selectedNetwork} 
       onSelectType={setSelectedType}
       onRouteSelect={handleRouteSelect}
       setSelectedRouteNames={setSelectedRouteNames}
     />
     <MapArea
+    selectedNetwork={selectedNetwork} 
       selectedType={selectedType}
       selectedRegion={selectedRegion}
       selectedTerritory={selectedTerritory}
@@ -164,6 +173,8 @@ const NetworkLayout = ({
 
 // Home page component
 const Home = ({
+  selectedNetwork,
+  setSelectedNetwork, 
   selectedType,
   selectedRegion,
   selectedTerritory,
@@ -178,11 +189,13 @@ const Home = ({
 }) => (
   <div className="home-layout">
     <SideBar
+       selectedNetwork={selectedNetwork} 
       onSelectType={setSelectedType}
       onRouteSelect={handleRouteSelect}
       setSelectedRouteNames={setSelectedRouteNames}
     />
     <MapArea
+      selectedNetwork={selectedNetwork}
       selectedType={selectedType}
       selectedRegion={selectedRegion}
       selectedTerritory={selectedTerritory}

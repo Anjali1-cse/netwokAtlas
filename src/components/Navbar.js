@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";  // Import useNavigate for routing
 import "./Navbar.css";
 
-const Navbar = ({ onSelectType, onRouteSelect }) => {
+const Navbar = ({onSelectNetwork, onSelectType, onRouteSelect }) => {
+  const [selectedNetwork, setSelectedNetwork] = useState("dwdm"); // Default to DWDM
   const [territories, setTerritories] = useState([]);
   const [types, setTypes] = useState([]);
   const [regions, setRegions] = useState([]);
@@ -16,9 +17,10 @@ const Navbar = ({ onSelectType, onRouteSelect }) => {
 
   // Fetch data for territories, types, and regions
   useEffect(() => {
+    if (!selectedNetwork) return; // Prevent unnecessary API calls
     const fetchData = async (endpoint, setter) => {
       try {
-        const response = await fetch(`http://localhost:3001/${endpoint}`);
+        const response = await fetch(`http://localhost:3001/api/${selectedNetwork}/${endpoint}`);
         const data = await response.json();
         const uniqueValues = data.map((item) => Object.values(item)[0]);
         setter(uniqueValues);
@@ -31,13 +33,24 @@ const Navbar = ({ onSelectType, onRouteSelect }) => {
     fetchData("types", setTypes);
     fetchData("regions", setRegions);
     fetchData("route_name", setRoutes);
-  }, []);
+    if (selectedNetwork) {
+      onSelectNetwork(selectedNetwork);
+    }
+  },  [selectedNetwork,onSelectNetwork]); // Runs when selectedNetwork changes
+
+  // Handle Network Selection Click
+const handleNetworkSelection = (network) => {
+  setSelectedNetwork(network);
+  onSelectNetwork(network); 
+};
 
   // Fetch all routes data
   useEffect(() => {
+    if (!selectedNetwork) return; // Avoid unnecessary API calls
     const fetchRoutes = async () => {
       try {
-        const response = await fetch("http://localhost:3001/routes");
+       // const routeType = selectedNetwork === "mdwdm" ? "mdwdm" : "dwdm";
+        const response = await fetch(`http://localhost:3001/routes?type=${selectedNetwork}`);
         const data = await response.json();
         setAllRoutes(data);
       } catch (error) {
@@ -46,7 +59,7 @@ const Navbar = ({ onSelectType, onRouteSelect }) => {
     };
 
     fetchRoutes();
-  }, []);
+  }, [selectedNetwork]); // Runs when selectedNetwork changes
 
   // Handle search query with region filtering
   const handleSearch = (event) => {
@@ -101,8 +114,18 @@ const Navbar = ({ onSelectType, onRouteSelect }) => {
 
         {/* Sub-navigation for Networks */}
         <SubNav title="Network">
-          <Link to="/network/dwdm">DWDM</Link>
-          <Link to="/network/mdwdm">MDWDM</Link>
+        <button 
+      className={selectedNetwork === "dwdm" ? "active" : ""}
+      onClick={() => handleNetworkSelection("dwdm")} // Correct state update
+    >
+      DWDM
+    </button>
+    <button 
+      className={selectedNetwork === "mdwdm" ? "active" : ""}
+      onClick={() => handleNetworkSelection("mdwdm")} // Correct state update
+    >
+      MDWDM
+    </button>
           <Link to="/upload">upload</Link>
         </SubNav>
 

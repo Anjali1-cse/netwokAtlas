@@ -7,7 +7,7 @@ const MapComponent = () => {
 
   const fetchStations = async () => {
     try {
-      const response = await fetch("http://localhost:5000/stations");
+      const response = await fetch("http://localhost:3001/stations");
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
