@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
+import "./FileUpload.css";
 
 const FileUpload = ({ onFileUpload }) => {
   const [file, setFile] = useState(null);
@@ -27,13 +28,10 @@ const FileUpload = ({ onFileUpload }) => {
       const result = await response.json();
       if (response.ok) {
         alert("File uploaded successfully!");
-        
-        // Notify the MapComponent that new data is available
+  
         if (onFileUpload) {
           onFileUpload();
         }
-
-        // Redirect to the map page
         navigate("/map");
       } else {
         alert(`Error: ${result.error}`);
@@ -45,12 +43,13 @@ const FileUpload = ({ onFileUpload }) => {
   };
 
   return (
-    <div>
+    <div className="file-upload-container">
       <h2>Upload Excel File</h2>
       <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
       <button onClick={handleUpload}>Upload File</button>
     </div>
   );
+  
 };
 
 export default FileUpload;

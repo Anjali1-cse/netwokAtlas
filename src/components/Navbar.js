@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";  // Import useNavigate for routing
+import { Link, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
-const Navbar = ({onSelectNetwork, onSelectType, onRouteSelect }) => {
-  const [selectedNetwork, setSelectedNetwork] = useState("dwdm"); // Default to DWDM
+const Navbar = ({ onSelectNetwork, onSelectType, onRouteSelect }) => {
+  const [selectedNetwork, setSelectedNetwork] = useState("dwdm");
   const [territories, setTerritories] = useState([]);
   const [types, setTypes] = useState([]);
   const [regions, setRegions] = useState([]);
@@ -12,12 +12,11 @@ const Navbar = ({onSelectNetwork, onSelectType, onRouteSelect }) => {
   const [matchingRoutes, setMatchingRoutes] = useState([]);
   const [allRoutes, setAllRoutes] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
-  const [selectedRegion, setSelectedRegion] = useState(""); // Track selected region
-  const navigate = useNavigate();  // Using useNavigate to programmatically navigate
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const navigate = useNavigate();
 
-  // Fetch data for territories, types, and regions
   useEffect(() => {
-    if (!selectedNetwork) return; // Prevent unnecessary API calls
+    if (!selectedNetwork) return;
     const fetchData = async (endpoint, setter) => {
       try {
         const response = await fetch(`http://localhost:3001/api/${selectedNetwork}/${endpoint}`);
@@ -36,20 +35,20 @@ const Navbar = ({onSelectNetwork, onSelectType, onRouteSelect }) => {
     if (selectedNetwork) {
       onSelectNetwork(selectedNetwork);
     }
-  },  [selectedNetwork,onSelectNetwork]); // Runs when selectedNetwork changes
+  }, [selectedNetwork, onSelectNetwork]);
 
-  // Handle Network Selection Click
-const handleNetworkSelection = (network) => {
-  setSelectedNetwork(network);
-  onSelectNetwork(network); 
-};
 
-  // Fetch all routes data
+  const handleNetworkSelection = (network) => {
+    setSelectedNetwork(network);
+    onSelectNetwork(network);
+
+  };
+
+
   useEffect(() => {
-    if (!selectedNetwork) return; // Avoid unnecessary API calls
+    if (!selectedNetwork) return; 
     const fetchRoutes = async () => {
       try {
-       // const routeType = selectedNetwork === "mdwdm" ? "mdwdm" : "dwdm";
         const response = await fetch(`http://localhost:3001/routes?type=${selectedNetwork}`);
         const data = await response.json();
         setAllRoutes(data);
@@ -59,130 +58,121 @@ const handleNetworkSelection = (network) => {
     };
 
     fetchRoutes();
-  }, [selectedNetwork]); // Runs when selectedNetwork changes
+  }, [selectedNetwork]);
 
-  // Handle search query with region filtering
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
     setSearchQuery(query);
-
-    // Apply both route name and region filtering
     const filteredRoutes = allRoutes.filter((route) => {
       const routeNameMatches = route.ROUTE_NAME?.toLowerCase().includes(query);
       const regionMatches =
         selectedRegion && selectedRegion !== "All"
           ? route.REGION?.toLowerCase() === selectedRegion.toLowerCase()
           : true;
-  
+
       return routeNameMatches && regionMatches;
     });
-  
+
     setMatchingRoutes(filteredRoutes);
   };
 
-  // Handle region selection and update route filtering
   const handleRegionSelect = (region) => {
     onSelectType(region);
-    setSelectedRegion(region); // Update selected region
-    setSearchQuery(""); // Clear search query if region changes
-
-    // Filter routes based on selected region only (if no search query is present)
+    setSelectedRegion(region);
+    setSearchQuery("");
     const filteredRoutes = allRoutes.filter(
       (route) =>
-        region.toLowerCase() === route.REGION?.toLowerCase() // Match region
+        region.toLowerCase() === route.REGION?.toLowerCase()
     );
 
-    setMatchingRoutes(filteredRoutes); // Update the displayed routes
+    setMatchingRoutes(filteredRoutes);
   };
 
   const handleSuggestionClick = (routeName) => {
-    setSearchQuery(routeName); // Update input field with selected suggestion
-    setMatchingRoutes([]); // Clear suggestions
-    setSelectedRoute(routeName);  // Store selected route
+    setSearchQuery(routeName);
+    setMatchingRoutes([]);
+    setSelectedRoute(routeName);
     onRouteSelect(routeName);
-    // Optionally pass to MapArea, e.g., by navigating
-    onSelectType(routeName);  // Pass to the parent component
-   
+    onSelectType(routeName);
+
   };
 
   return (
     <section className="header">
       <header className="navbar">
-        <h1>Network Info Atlas</h1>
-        <Link to="/">Home</Link>
-       
+        <div className="nav-menu">
+          <h1>Network Info Atlas</h1>
+          <Link to="/" onClick={(e) => {
+            e.preventDefault();
+            navigate(0);
+          }}>Home</Link>
 
-        {/* Sub-navigation for Networks */}
-        <SubNav title="Network">
-        <button 
-      className={selectedNetwork === "dwdm" ? "active" : ""}
-      onClick={() => handleNetworkSelection("dwdm")} // Correct state update
-    >
-      DWDM
-    </button>
-    <button 
-      className={selectedNetwork === "mdwdm" ? "active" : ""}
-      onClick={() => handleNetworkSelection("mdwdm")} // Correct state update
-    >
-      MDWDM
-    </button>
-          <Link to="/upload">upload</Link>
-        </SubNav>
+          <SubNav title="Network">
+            <button id="typeA"
+              className={selectedNetwork === "dwdm" ? "active" : ""}
+              onClick={() => handleNetworkSelection("dwdm")}
+            >
+              DWDM
+            </button>
+            <button id="typeB"
+              className={selectedNetwork === "mdwdm" ? "active" : ""}
+              onClick={() => handleNetworkSelection("mdwdm")}
+            >
+              MDWDM
+            </button>
+            <Link to="/upload">upload</Link>
+          </SubNav>
 
-        {/* Sub-navigation for Types */}
-        <SubNav title="Type">
-          {types.length > 0 ? (
-            types.map((type, index) => (
-              <button
-                key={index}
-                onClick={() => onSelectType(type)}
-                className="type-button"
-              >
-                {type}
-              </button>
-            ))
-          ) : (
-            <span>Loading Types...</span>
-          )}
-        </SubNav>
+          <SubNav title="Type">
+            {types.length > 0 ? (
+              types.map((type, index) => (
+                <button
+                  key={index}
+                  onClick={() => onSelectType(type)}
+                  className="type-button"
+                >
+                  {type}
+                </button>
+              ))
+            ) : (
+              <span>Loading Types...</span>
+            )}
+          </SubNav>
+          <SubNav title="Region">
+            {regions.length > 0 ? (
+              regions.map((region, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleRegionSelect(region)}
+                  className="region-button"
+                >
+                  {region}
+                </button>
+              ))
+            ) : (
+              <span>Loading Regions...</span>
+            )}
+          </SubNav>
 
-        {/* Sub-navigation for Regions */}
-        <SubNav title="Region">
-          {regions.length > 0 ? (
-            regions.map((region, index) => (
-              <button
-                key={index}
-                onClick={() => handleRegionSelect(region)} // Updated region selection logic
-                className="region-button"
-              >
-                {region}
-              </button>
-            ))
-          ) : (
-            <span>Loading Regions...</span>
-          )}
-        </SubNav>
+          <SubNav title="Territory">
+            {territories.length > 0 ? (
+              territories.map((territory, index) => (
+                <button
+                  key={index}
+                  onClick={() => onSelectType(territory)}
+                  className="territory-button"
+                >
+                  {territory}
+                </button>
+              ))
+            ) : (
+              <span>Loading Territories...</span>
+            )}
+          </SubNav>
 
-        {/* Sub-navigation for Territories */}
-        <SubNav title="Territory">
-          {territories.length > 0 ? (
-            territories.map((territory, index) => (
-              <button
-                key={index}
-                onClick={() => onSelectType(territory)}
-                className="territory-button"
-              >
-                {territory}
-              </button>
-            ))
-          ) : (
-            <span>Loading Territories...</span>
-          )}
-        </SubNav>
+          <Link to="/contact">Contact</Link>
+        </div>
 
-        <Link to="/contact">Contact</Link>
-
-        {/* Search Bar */}
         <div className="search-bar">
           <form style={{ position: "relative" }}>
             <input
@@ -209,6 +199,7 @@ const handleNetworkSelection = (network) => {
             )}
           </form>
         </div>
+
       </header>
     </section>
   );

@@ -1,18 +1,23 @@
-import React, { useEffect, useState,useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import "leaflet.markercluster";
+
 import './MapArea.css';
 
-const MapArea = ({ selectedNetwork,selectedType,selectedRouteNames }) => {
-    // Default to DWDM
-  const [routes, setRoutes] = useState([]);
-  const [popData, setPopData] = useState([]);
-  const mapRef = useRef(null);
+const MapArea = ({ selectedNetwork, selectedType, selectedRouteNames }) => {
 
-  // Fetch routes data when selectedNetwork changes
+  const [routes, setRoutes] = useState([]);
+  const [popData, setPopData] = useState([]); 
+  const [railwayRoute, setRailwayRoute] = useState([]);
+  const mapRef = useRef(null);
+ 
   useEffect(() => {
-    setRoutes([]); // Clear old data before fetching new
+    setRoutes([]); 
     if (!selectedNetwork) return;
     const routeType = selectedNetwork;
     fetch(`http://localhost:3001/routes?type=${routeType}`)
@@ -20,20 +25,17 @@ const MapArea = ({ selectedNetwork,selectedType,selectedRouteNames }) => {
       .then((data) => setRoutes(data))
       .catch((err) => {
         console.error("Error fetching routes:", err);
-        setRoutes([]); // Empty array in case of failure
+        setRoutes([]); 
       });
   }, [selectedNetwork]);
-// Fetch pop data
+ 
   useEffect(() => {
-    console.log("Fetching POP data for:", selectedNetwork); // Debug log
-    setPopData([]); // Clear old data before fetching new
-  
-     // Determine table name based on type
-     let popType = "POP_LOCATION"; // Default table
-     if (selectedNetwork === "mdwdm") {
+    setPopData([]); 
+    let popType = "POP_LOCATION"; 
+    if (selectedNetwork === "mdwdm") {
       popType = "MDWDM_POP_LOCATION";
-     }
-     console.log("Fetched Data:", popType);
+    }
+    console.log("Fetched Data:", popType);
     fetch(`http://localhost:3001/pop?type=${popType}`)
       .then((res) => res.json())
       .then((data) => {
@@ -45,10 +47,17 @@ const MapArea = ({ selectedNetwork,selectedType,selectedRouteNames }) => {
         setPopData([]);
       });
   }, [selectedNetwork]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/railway")
+      .then(res => res.json())
+      .then(data => {
+        console.log("Railway Data:", data);
+        setRailwayRoute(data);
+      })
+      .catch(err => console.error("Error fetching railway data:", err));
+  }, []);
   
-
-
-  // Shape and color lookup map for POPs
   const shapeColorMap = {
     "TEJAS": {
       "ILA": { shape: "triangle", color: "teal" },
@@ -74,10 +83,9 @@ const MapArea = ({ selectedNetwork,selectedType,selectedRouteNames }) => {
       const eqpType = Object.keys(shapeColorMap[key]).find((t) => type.includes(t));
       return eqpType ? shapeColorMap[key][eqpType] : { shape: "circle", color: "blue" };
     }
-    return { shape: "circle", color: "blue" }; // Default shape and color
+    return { shape: "circle", color: "blue" }; 
   };
 
-  // Style for routes based on type
   const getRouteStyle = (type) => {
     switch (type) {
       case "To Be Commission":
@@ -91,83 +99,110 @@ const MapArea = ({ selectedNetwork,selectedType,selectedRouteNames }) => {
       case "TEJAS":
         return { color: "red", weight: 3, opacity: 0.9 };
       case "CORIANT":
-        return{color: "orange", weight: 3, opacity: 0.9 }
+        return { color: "orange", weight: 3, opacity: 0.9 }
       default:
         return { color: "gray", weight: 3, opacity: 0.9 };
     }
   };
 
-  // Filter routes based on selectedType (could be type, region, territory, or route name)
-  const filteredRoutes = useMemo(() => {
+    const filteredRoutes = useMemo(() => {
+      if (!routes) return [];
     return routes.filter((route) => {
       const matchesType = selectedType
         ? route.type === selectedType ||
-          route.REGION === selectedType ||
-          route.TERRITORY === selectedType ||
-          route.ROUTE_NAME === selectedType
+        route.REGION === selectedType ||
+        route.TERRITORY === selectedType ||
+        route.ROUTE_NAME === selectedType
         : true;
-  
+
       const matchesSelectedRoute = selectedRouteNames.length > 0
         ? selectedRouteNames.includes(route.ROUTE_NAME)
         : true;
-  
+
       return matchesType && matchesSelectedRoute;
     });
-  }, [selectedType, selectedRouteNames, routes]); 
-  
+  }, [selectedType, selectedRouteNames, routes]);
+
+ 
   useEffect(() => {
     if (mapRef.current && filteredRoutes.length > 0) {
       const map = mapRef.current;
-      
-  
-      // Collect all bounds
       let combinedBounds = null;
-      filteredRoutes.forEach((route) => {
+      filteredRoutes.forEach(route => {
         if (route.geometry && route.geometry.coordinates) {
           try {
             const geojsonLayer = L.geoJSON(route.geometry);
             const bounds = geojsonLayer.getBounds();
-  
             if (bounds.isValid()) {
-              if (combinedBounds) {
-                combinedBounds.extend(bounds);
-              } else {
-                combinedBounds = bounds;
-              }
+              combinedBounds ? combinedBounds.extend(bounds) : combinedBounds = bounds;
             }
           } catch (error) {
             console.error("Error processing route geometry:", error);
           }
         }
       });
-  
       if (combinedBounds && combinedBounds.isValid()) {
         setTimeout(() => {
-          map.invalidateSize(); // Ensure the map resizes properly
-          if (combinedBounds && combinedBounds.isValid()) {
-            map.fitBounds(combinedBounds, { padding: [50, 50] });
-          }
-        }, 200); // Increase delay slightly if needed
-         // Slight delay to allow rendering
+          map.invalidateSize();
+          map.fitBounds(combinedBounds, { padding: [50, 50] });
+        }, 200);
       }
     }
   }, [filteredRoutes]);
+
+   // 🚀 Railway Route Clustering
+   useEffect(() => {
+    if (!railwayRoute || !railwayRoute.features || !mapRef.current) return;
+
+    const map = mapRef.current;
+    const markerClusterGroup = L.markerClusterGroup();
+
+    railwayRoute.features.forEach((feature) => {
+      if (feature.geometry.type === "Point") {
+        const [lng, lat] = feature.geometry.coordinates;
+        const marker = L.marker([lat, lng]).bindPopup(
+          `<b>Railway Route:</b> ${feature.properties?.id || "Unknown"}`
+        );
+        markerClusterGroup.addLayer(marker);
+      }
+    });
+
+    map.addLayer(markerClusterGroup);
+
+    return () => {
+      map.removeLayer(markerClusterGroup);
+    };
+  }, [railwayRoute]);
+
   
+
 
   return (
     <MapContainer
-      center={[20.5937, 78.9629]} // Centered on India
+      center={[20.5937, 78.9629]} 
       zoom={5}
       style={{ height: "100%", width: "100%" }}
-      whenCreated={(map) => (mapRef.current = map)} // Store map reference
+      whenCreated={(map) => (mapRef.current = map)} 
     >
-      {/* Tile Layer */}
+  
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
       />
+     
+     
+     {railwayRoute.features && (
+  <GeoJSON
+    data={railwayRoute}
+    style={{ color: "grey", weight: 0.3, opacity: 0.7  }}
+    onEachFeature={(feature, layer) => {
+      layer.bindPopup(`<b>Railway Route:</b> ${feature.properties?.id || "Unknown"}`);
+    }}
+  />
+)}
 
-      {/* Render Routes */}
+
+      
       {filteredRoutes.map((routes) =>
         routes.geometry ? (
           <GeoJSON
@@ -184,29 +219,27 @@ const MapArea = ({ selectedNetwork,selectedType,selectedRouteNames }) => {
                 <b>Region:</b> ${routes.REGION || "Not Available"}<br />
                 <b>Type:</b> ${routes.type || "Not Available"}
               `);
-              
+
             }}
           />
         ) : null
       )}
-
-      {/* Render POP Locations */}
       {popData.length > 0 &&
-        popData.map((pop,index) => {
+        popData.map((pop, index) => {
           const { shape, color } = getShapeAndColor(pop.EQP_TYPE || "");
-          if (!pop.geometry) return null; // Skip if no geometry
+          if (!pop.geometry) return null;
 
           return (
             <GeoJSON
-            key={`${pop.id}-${selectedNetwork}-${index}`} // Unique key forces re-render
+              key={`${pop.id}-${selectedNetwork}-${index}`} 
               data={pop.geometry}
               pointToLayer={(feature, latlng) => {
                 if (shape === "triangle") {
-                  // Draw a triangle
+                  
                   const triangleCoords = [
                     [latlng.lat, latlng.lng],
-                    [latlng.lat - 0.02, latlng.lng - 0.02],
-                    [latlng.lat - 0.02, latlng.lng + 0.02],
+                    [latlng.lat - 0.05, latlng.lng - 0.05],
+                    [latlng.lat - 0.05, latlng.lng + 0.05],
                   ];
                   return L.polygon(triangleCoords, {
                     color: color,
@@ -214,8 +247,7 @@ const MapArea = ({ selectedNetwork,selectedType,selectedRouteNames }) => {
                     fillOpacity: 0.8,
                   });
                 } else if (shape === "rectangle") {
-                  // Draw a rectangle
-                  const size = 0.02; // Adjust size for scaling
+                  const size = 0.05; 
                   const bounds = [
                     [latlng.lat - size / 2, latlng.lng - size / 2],
                     [latlng.lat + size / 2, latlng.lng + size / 2],
@@ -226,7 +258,6 @@ const MapArea = ({ selectedNetwork,selectedType,selectedRouteNames }) => {
                     fillOpacity: 0.8,
                   });
                 } else {
-                  // Draw a circle (default)
                   return L.circleMarker(latlng, {
                     radius: 6,
                     fillColor: color,

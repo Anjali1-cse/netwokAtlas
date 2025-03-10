@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Polyline, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "./MapComponent.css";
 
 const MapComponent = () => {
   const [stations, setStations] = useState([]);
@@ -12,7 +13,7 @@ const MapComponent = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       const data = await response.json();
-      console.log("Fetched Data:", data); // Debugging API response
+      console.log("Fetched Data:", data);
       setStations(data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -24,11 +25,10 @@ const MapComponent = () => {
   }, []);
 
   return (
-    <MapContainer center={[20.5937, 78.9629]} zoom={5} style={{ height: "500px", width: "100%" }}>
+    <MapContainer center={[20.5937, 78.9629]} zoom={5} className="map-container">
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
       {stations.map((station, index) => {
-        // Validate coordinates before rendering markers & polylines
         if (
           !station.latitude_a || !station.longitude_a || 
           !station.latitude_b || !station.longitude_b

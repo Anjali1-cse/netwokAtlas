@@ -1,74 +1,99 @@
 import React, { useEffect, useState } from "react";
 import './SideBar.css';
 
-const SideBar = ({ selectedNetwork,onSelectType, onRouteSelect, setSelectedRouteNames }) => {
-    const [nodes, setNodes] = useState([]); // Store all stations
-    const [searchNodeA, setSearchNodeA] = useState(""); // Input for POP A
-    const [searchNodeB, setSearchNodeB] = useState(""); // Input for POP B
-    const [filteredNodesA, setFilteredNodesA] = useState([]); // Suggestions for POP A
-    const [filteredNodesB, setFilteredNodesB] = useState([]); // Suggestions for POP B
-    const [routeData, setRouteData] = useState(null); // Store selected route data
+const SideBar = ({ selectedNetwork, onSelectType, onRouteSelect, setSelectedRouteNames }) => {
+    const [nodes, setNodes] = useState([]);
+    const [searchNodeA, setSearchNodeA] = useState("");
+    const [searchNodeB, setSearchNodeB] = useState("");
+    const [filteredNodesA, setFilteredNodesA] = useState([]);
+    const [filteredNodesB, setFilteredNodesB] = useState([]);
+    const [selectedPopNameA, setSelectedPopNameA] = useState(null);
+    const [selectedPopNameB, setSelectedPopNameB] = useState(null);
+    const [selectedPopAID, setSelectedPopAID] = useState("");
+    const [selectedPopBID, setSelectedPopBID] = useState("");
 
+    const [routeData, setRouteData] = useState(null);
     useEffect(() => {
+        console.log("Fetching POP data for:", selectedNetwork);
+        setNodes([]);
         const fetchNodes = async () => {
             try {
-                const response = await fetch("http://localhost:3001/pop");
+                let popType = "POP_LOCATION";
+                if (selectedNetwork === "mdwdm") {
+                    popType = "MDWDM_POP_LOCATION";
+                }
+                console.log("Fetched Data:", popType);
+                const response = await fetch(`http://localhost:3001/pop?type=${popType}`);
                 const data = await response.json();
-                setNodes(data.map(item => item.STN_CODE)); // Extract STN_CODE values
+
+                setNodes(data.map(item => ({
+                    STN_CODE: item.STN_CODE,
+                    STN_NAME: item.STN_NAME,
+                    POP_ID: item.POP_ID
+                })));
             } catch (err) {
                 console.error("Error fetching stn_code data:", err);
-                setNodes([]); // Set to empty array in case of failure
+                setNodes([]);
             }
         };
         fetchNodes();
-    }, []);
+    }, [selectedNetwork]);
 
-    
-
-    // Handle search input for POP A
     const handleSearchA = (event) => {
         const query = event.target.value.toUpperCase();
         setSearchNodeA(query);
-        setFilteredNodesA(nodes.filter(node => node.startsWith(query)));
+        setFilteredNodesA(nodes.filter(
+            node => node.STN_NAME.toLowerCase().includes(query.toLowerCase()) ||
+                node.STN_CODE.toLowerCase().includes(query.toLowerCase())));
     };
 
-    // Handle search input for POP B
+
     const handleSearchB = (event) => {
         const query = event.target.value.toUpperCase();
         setSearchNodeB(query);
-        setFilteredNodesB(nodes.filter(node => node.startsWith(query)));
+        setFilteredNodesB(nodes.filter(
+            node => node.STN_NAME.toLowerCase().includes(query.toLowerCase()) ||
+                node.STN_CODE.toLowerCase().includes(query.toLowerCase())));
     };
 
-    // Select a station from suggestions for POP A
+
     const handleSelectA = (station) => {
-        setSearchNodeA(station);
+        setSearchNodeA(station.STN_CODE);
+        setSelectedPopAID(station.POP_ID);
+        setSelectedPopNameA(station.STN_NAME);
         setFilteredNodesA([]);
     };
 
-    // Select a station from suggestions for POP B
+
     const handleSelectB = (station) => {
-        setSearchNodeB(station);
+        setSearchNodeB(station.STN_CODE);
+        setSelectedPopBID(station.POP_ID);
+        setSelectedPopNameB(station.STN_NAME);
         setFilteredNodesB([]);
     };
 
-    // Fetch and display route
     const fetchRoute = async () => {
         try {
-            const response = await fetch("http://localhost:3001/route", {
+            if (!selectedPopAID || !selectedPopBID) {
+                alert("Please select both POP A and POP B.");
+                return;
+            }
+            const response = await fetch(`http://localhost:3001/route/${selectedNetwork}`, {
+
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ popA: searchNodeA, popB: searchNodeB }),
+                body: JSON.stringify({ popA: selectedPopAID, popB: selectedPopBID }),
             });
 
             if (response.ok) {
                 const data = await response.json();
-                setRouteData(data); // Store route data in state
-                setSelectedRouteNames(data.routeNames); // Pass selected routes to App.js
+                setRouteData(data);
+                setSelectedRouteNames(data.routeNames);
             } else {
                 setRouteData(null);
-                setSelectedRouteNames([]); // Reset on error
+                setSelectedRouteNames([]);
             }
         } catch (error) {
             console.error("Error fetching route:", error);
@@ -92,7 +117,7 @@ const SideBar = ({ selectedNetwork,onSelectType, onRouteSelect, setSelectedRoute
                     <ul className="suggestions">
                         {filteredNodesA.map((station, index) => (
                             <li key={index} onClick={() => handleSelectA(station)}>
-                                {station}
+                                {station.STN_CODE} - {station.STN_NAME}
                             </li>
                         ))}
                     </ul>
@@ -111,7 +136,7 @@ const SideBar = ({ selectedNetwork,onSelectType, onRouteSelect, setSelectedRoute
                     <ul className="suggestions">
                         {filteredNodesB.map((station, index) => (
                             <li key={index} onClick={() => handleSelectB(station)}>
-                                {station}
+                                {station.STN_CODE} - {station.STN_NAME}
                             </li>
                         ))}
                     </ul>
@@ -121,16 +146,13 @@ const SideBar = ({ selectedNetwork,onSelectType, onRouteSelect, setSelectedRoute
             <h4>Selected routes by minimum distance/by minimum interval:</h4>
             <button onClick={fetchRoute}>Find Route</button>
 
-            {/* Display Selected Route */}
+
             {routeData && (
                 <div className="route-section">
                     <h2>Selected Route:</h2>
-                    <p><strong>Route Path:</strong> {routeData.route}</p>
-                    <p><strong>Total Distance:</strong> {routeData.totalDistance}</p>
-                    <p><strong>Route Names:</strong> {routeData.routeNames}</p>
 
                     <h3>Route Details:</h3>
-                    <table>
+                    <table id="route-table">
                         <thead>
                             <tr>
                                 <th>Route Name</th>
@@ -144,8 +166,14 @@ const SideBar = ({ selectedNetwork,onSelectType, onRouteSelect, setSelectedRoute
                                     <td>{segment.distance} km</td>
                                 </tr>
                             ))}
+                            <tr>
+                                <td><strong>Total Distance:</strong></td>
+                                <td><strong>{routeData.totalDistance} KM</strong></td>
+                            </tr>
                         </tbody>
+
                     </table>
+
                 </div>
             )}
         </div>

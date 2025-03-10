@@ -1,0 +1,45 @@
+.map-container {
+    height: 800px;
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .leaflet-container {
+    font-family: Arial, sans-serif;
+  }
+  
+  .leaflet-popup-content {
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .leaflet-marker-icon {
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .leaflet-marker-icon:hover {
+    transform: scale(1.2);
+  }
+  
+  .leaflet-interactive {
+    stroke-width: 2 !important;
+    stroke-opacity: 0.9 !important;
+  }
+  
+  .polyline {
+    stroke-width: 3;
+    stroke-opacity: 0.8;
+  }
+  
+  .leaflet-marker-pane {
+    opacity: 0.9;
+  }
+  
+  .leaflet-overlay-pane polyline {
+    stroke: blue;
+    stroke-width: 2;
+    stroke-opacity: 0.8;
+  }
+  

@@ -1,272 +1,214 @@
-/* General Navbar Styling */
 .navbar {
   display: flex;
-  justify-content: space-between; /* Evenly distribute navbar items */
+  justify-content: space-between;
   align-items: center;
-  background-color: #333;
-  padding: 12px 24px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 12px 20px;
+  background: rgba(51, 51, 51, 0.9); 
   color: white;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid #444;
-  flex-wrap: wrap;
-  box-sizing: border-box; /* Ensure proper padding handling */
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+.navbar:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 
-.navbar h1 {
-  font-size: 26px;
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+.nav-menu h1 {
   margin: 0;
+  font-size: 22px;
   font-weight: bold;
-  flex-shrink: 0; /* Prevent title from shrinking */
+  letter-spacing: 1px;
 }
 
-.navbar a {
-  color: white;
+.nav-menu a {
+  color: #fff;
+  background: transparent;
   text-decoration: none;
-  padding: 10px 20px;
   font-size: 16px;
+  padding: 10px 15px;
   border-radius: 6px;
-  transition: background-color 0.3s, color 0.3s;
-  white-space: nowrap; /* Prevent link text wrapping */
+  transition: all 0.3s ease-in-out;
 }
 
-.navbar a:hover {
-  background-color: #575757;
+.nav-menu a:hover,
+.nav-menu .active {
+  background: linear-gradient(45deg, #444, #555);
+  transform: scale(1.05);
+  box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.2);
 }
 
-/* Subnav Button */
+
 .subnav {
   position: relative;
-  flex-grow: 1; /* Make subnav stretch dynamically */
+  display: inline-block;
 }
 
 .subnavbtn {
-  background-color: inherit;
-  color: white;
-  border: none;
-  font-size: 16px;
-  padding: 10px 20px;
-  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  padding: 12px 18px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  outline: none;
-  transition: background-color 0.3s, box-shadow 0.3s;
+  font-size: 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
 }
 
 .subnavbtn:hover {
-  background-color: #575757;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #4a4a4a, #555);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05);
 }
 
-/* Dropdown Content */
 .subnav-content {
-  display: none;
+  display: flex;
+  flex-direction: column;
   position: absolute;
-  background-color: #444;
-  min-width: 200px;
+  background: rgba(51, 51, 51, 0.95);
+  min-width: 180px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 10px;
   border-radius: 8px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  z-index: 1001;
-  box-sizing: border-box;
-}
-
-.subnav-content a {
-  padding: 12px 16px;
-  display: block;
-  color: white;
-  text-decoration: none;
-  font-size: 14px;
-  border-bottom: 1px solid #555;
-  transition: background-color 0.3s;
-}
-
-.subnav-content a:last-child {
-  border-bottom: none;
-}
-
-.subnav-content a:hover {
-  background-color: #575757;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s ease-in-out;
 }
 
 .subnav:hover .subnav-content {
   display: block;
-  animation: fadeIn 0.3s ease-in-out;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
-/* Buttons Styling for Type, Region, and Territory */
-.type-button,
-.region-button,
-.territory-button {
-  display: inline-block;
-  padding: 8px 16px;
-  margin: 4px;
-  background-color: #444;
+
+.subnav-content button {
   color: white;
+  padding: 12px 16px;
+  margin: 5px;
+  width: 100%;
   border: none;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  text-align: left;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  border-radius: 6px;
+  transition: all 0.3s ease-in-out;
 }
 
-.type-button:hover,
-.region-button:hover,
-.territory-button:hover {
-  background-color: #575757;
+.subnav-content button:hover {
+  background: linear-gradient(135deg, #6a6a6a, #757575);
   transform: scale(1.05);
+  box-shadow: 0px 3px 6px rgba(255, 255, 255, 0.3);
 }
 
-/* Scrollable Dropdown */
-.subnav-content {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  max-width: 100%;
-  padding: 8px;
-}
 
-.subnav-content::-webkit-scrollbar {
-  height: 8px;
-}
 
-.subnav-content::-webkit-scrollbar-thumb {
-  background-color: #575757;
-  border-radius: 4px;
-}
-
-.subnav-content::-webkit-scrollbar-thumb:hover {
-  background-color: #444;
-}
-
-/* Search Bar Styling */
 .search-bar {
   display: flex;
   align-items: center;
-  margin-left: auto;
-  flex-shrink: 0; /* Prevent shrinking */
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 8px;
+  width: 240px;
+  transition: all 0.3s ease-in-out;
 }
 
-#searchInput {
-  flex: 1; /* Fill available space */
-  padding: 8px 12px;
+.search-bar:hover {
+  box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.2);
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 10px;
   font-size: 14px;
-  border: 1px solid #575757;
-  border-right: none; /* Merge border with button */
-  border-radius: 4px 0 0 4px;
+  border: none;
+  border-radius: 5px;
   outline: none;
-  transition: border-color 0.3s;
-  min-width: 150px; /* Ensure search input does not collapse */
+  width: 100%;
+  background-color: #fff; 
 }
 
-.search-input:focus {
-  border-color: #999;
-}
 
-#searchBtn {
-  padding: 8px 16px;
-  background-color: #575757;
-  color: white;
-  border: 1px solid #575757;
-  border-radius: 0 4px 4px 0;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-#searchBtn:hover {
-  background-color: #444;
-}
-
-/* Search Results Styling */
 .search-results {
   position: absolute;
-  top: 35px;
-  left: 0;
-  right: 0;
-  background-color: black;
-  border: 1px solid #ddd;
-  max-height: 200px;
+  background: rgba(10, 10, 10, 0.95);
+  min-width: 220px;
+  max-height: 180px;
   overflow-y: auto;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
   z-index: 1000;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 100%;
+  list-style: none;
+  padding: 5px;
+  margin-top: 5px;
+  border-radius: 8px;
 }
 
 .search-result-item {
-  padding: 8px;
+  padding: 12px;
   cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease-in-out;
 }
 
 .search-result-item:hover {
-  background-color: #f0f0f0;
+  background: linear-gradient(135deg, #7f7777, #9e9e9e);
+  transform: scale(1.05);
 }
 
-/* Responsive Styling */
+
+.subnav-content::-webkit-scrollbar,
+.search-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.subnav-content::-webkit-scrollbar-thumb,
+.search-results::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #666, #777);
+  border-radius: 6px;
+  box-shadow: 0px 0px 6px rgba(255, 255, 255, 0.4);
+}
+
+.subnav-content::-webkit-scrollbar-track,
+.search-results::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+
 @media screen and (max-width: 768px) {
   .navbar {
     flex-direction: column;
     align-items: center;
+    padding: 10px;
   }
 
-  .navbar a,
-  .subnavbtn {
-    width: 100%;
-    text-align: center;
-    padding: 12px;
-  }
-
-  .subnav-content {
-    position: static;
-    box-shadow: none;
-    width: 100%;
-    border-radius: 0;
+  .nav-menu {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
   }
 
   .search-bar {
-    flex-direction: column;
     width: 100%;
+    max-width: 280px;
+    margin-top: 12px;
   }
 
-  #searchInput, #searchBtn {
-    width: 100%;
-    margin-bottom: 8px;
-    border-radius: 4px;
+  .subnav-content {
+    min-width: 100%;
   }
 }
-
-.route-search-input,
-.territory-search-input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  box-sizing: border-box;
-}
-
-.route-button,
-.territory-button {
-  display: block;
-  background: none;
-  border: none;
-  padding: 10px;
-  text-align: left;
-  width: 100%;
-  cursor: pointer;
-}
-
-.route-button:hover,
-.territory-button:hover {
-  background-color: #ddd;
-}
-
-
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.active {
+  background: linear-gradient(135deg, #555, #666);
+  box-shadow: 0px 0px 6px rgba(255, 255, 255, 0.4);
 }
